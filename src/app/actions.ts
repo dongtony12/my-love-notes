@@ -3,10 +3,13 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import type { Database } from '@/types/supabase'
 
-export type Category = 'dont' | 'like' | 'dislike' | 'wishlist'
+export type DisplayType = 'list' | 'checklist' | 'priority' | 'rule'
+export type CategoryRow = Database['public']['Tables']['categories']['Row']
+export type ItemRow = Database['public']['Tables']['items']['Row']
 
-export async function addItem(category: Category, content: string) {
+export async function addItem(categoryId: string, content: string) {
   const trimmed = content.trim()
   if (!trimmed) return
 
@@ -16,7 +19,7 @@ export async function addItem(category: Category, content: string) {
 
   const { error } = await supabase
     .from('items')
-    .insert({ user_id: user.id, category, content: trimmed })
+    .insert({ user_id: user.id, category_id: categoryId, content: trimmed })
 
   if (error) throw new Error(error.message)
   revalidatePath('/')

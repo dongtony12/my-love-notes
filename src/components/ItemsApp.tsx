@@ -8,23 +8,25 @@ import {
   updateItem,
   updateHeader,
   signOut,
-  type Category,
 } from '@/app/actions'
 
 type Item = {
   id: string
-  category: Category
+  category_id: string
   content: string
   is_done: boolean
   created_at: string
+  updated_at: string
 }
 
-const CATEGORIES: { key: Category; label: string; emoji: string }[] = [
-  { key: 'dont', label: '하지 말 것', emoji: '🚫' },
-  { key: 'like', label: '좋아하는 것', emoji: '❤️' },
-  { key: 'dislike', label: '싫어하는 것', emoji: '👎' },
-  { key: 'wishlist', label: '같이 할 것', emoji: '✨' },
-]
+type Category = {
+  id: string
+  name: string
+  emoji: string
+  display_type: string
+  position: number
+  is_default: boolean
+}
 
 type OptimisticAction =
   | { type: 'add'; item: Item }
@@ -51,12 +53,16 @@ function reducer(state: Item[], action: OptimisticAction): Item[] {
 
 export function ItemsApp({
   items,
+  categories,
   headerText,
 }: {
   items: Item[]
+  categories: Category[]
   headerText: string
 }) {
-  const [active, setActive] = useState<Category>('dont')
+  const [activeId, setActiveId] = useState<string>(
+    () => categories[0]?.id ?? '',
+  )
   const [draft, setDraft] = useState('')
   const [, startTransition] = useTransition()
   const [optimisticItems, applyOptimistic] = useOptimistic(items, reducer)
@@ -65,29 +71,33 @@ export function ItemsApp({
     (_, next: string) => next,
   )
 
-  const filtered = optimisticItems.filter((i) => i.category === active)
-  const activeMeta = CATEGORIES.find((c) => c.key === active)!
-  const doneCount =
-    active === 'wishlist' ? filtered.filter((i) => i.is_done).length : 0
+  const activeMeta = categories.find((c) => c.id === activeId) ?? categories[0]
+  const filtered = optimisticItems.filter((i) => i.category_id === activeId)
+  const isChecklist = activeMeta?.display_type === 'checklist'
+  const doneCount = isChecklist
+    ? filtered.filter((i) => i.is_done).length
+    : 0
 
   function onAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const content = draft.trim()
-    if (!content) return
+    if (!content || !activeId) return
     setDraft('')
     const tempId = `temp-${Date.now()}`
+    const now = new Date().toISOString()
     startTransition(async () => {
       applyOptimistic({
         type: 'add',
         item: {
           id: tempId,
-          category: active,
+          category_id: activeId,
           content,
           is_done: false,
-          created_at: new Date().toISOString(),
+          created_at: now,
+          updated_at: now,
         },
       })
-      await addItem(active, content)
+      await addItem(activeId, content)
     })
   }
 
@@ -123,6 +133,17 @@ export function ItemsApp({
     })
   }
 
+  if (!activeMeta) {
+    // 카테고리가 없는 경우 (예외) — 안내
+    return (
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-4 text-center">
+        <p className="text-warm-soft text-sm">
+          카테고리가 없어요. 먼저 카테고리를 추가해주세요.
+        </p>
+      </main>
+    )
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-24 pt-8">
       <header className="mb-7 flex items-center justify-between gap-2">
@@ -141,19 +162,24 @@ export function ItemsApp({
         <div className="mb-2 flex items-center justify-between px-1">
           <span className="section-label">카테고리</span>
         </div>
-        <nav className="card grid grid-cols-4 gap-1 rounded-2xl p-1.5">
-          {CATEGORIES.map((c) => (
+        <nav
+          className="card grid gap-1 rounded-2xl p-1.5"
+          style={{
+            gridTemplateColumns: `repeat(${Math.min(categories.length, 4)}, minmax(0, 1fr))`,
+          }}
+        >
+          {categories.map((c) => (
             <button
-              key={c.key}
-              onClick={() => setActive(c.key)}
+              key={c.id}
+              onClick={() => setActiveId(c.id)}
               className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium transition ${
-                active === c.key
+                activeId === c.id
                   ? 'card-active text-warm'
                   : 'text-warm-soft hover:text-warm'
               }`}
             >
               <span className="text-lg">{c.emoji}</span>
-              <span className="truncate">{c.label}</span>
+              <span className="truncate">{c.name}</span>
             </button>
           ))}
         </nav>
@@ -170,7 +196,7 @@ export function ItemsApp({
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={`${activeMeta.label} 추가...`}
+            placeholder={`${activeMeta.name} 추가...`}
             className="text-warm flex-1 rounded-xl bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-stone-400"
           />
           <button
@@ -185,9 +211,9 @@ export function ItemsApp({
 
       <section>
         <div className="mb-3 flex items-end justify-between px-1">
-          <span className="section-label">{activeMeta.label}</span>
+          <span className="section-label">{activeMeta.name}</span>
           <span className="text-warm-soft text-xs">
-            {active === 'wishlist' && filtered.length > 0
+            {isChecklist && filtered.length > 0
               ? `${doneCount} / ${filtered.length}개 완료`
               : `${filtered.length}개`}
           </span>
@@ -203,7 +229,7 @@ export function ItemsApp({
             <ItemRow
               key={item.id}
               item={item}
-              showCheckbox={active === 'wishlist'}
+              showCheckbox={isChecklist}
               onDelete={onDelete}
               onToggle={onToggle}
               onUpdate={onUpdate}
