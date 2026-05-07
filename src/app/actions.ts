@@ -55,6 +55,27 @@ export async function updateItem(id: string, content: string) {
   revalidatePath('/')
 }
 
+export async function updatePriority(id: string, priority: number) {
+  const clamped = Math.min(10, Math.max(1, Math.round(priority)))
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('items')
+    .update({ priority: clamped })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
+
+export async function togglePin(id: string, isPinned: boolean) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('items')
+    .update({ is_pinned: isPinned })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
+
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()

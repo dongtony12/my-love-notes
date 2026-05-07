@@ -13,7 +13,9 @@ export default async function Home() {
     await Promise.all([
       supabase
         .from('items')
-        .select('id, category_id, content, is_done, created_at, updated_at')
+        .select(
+          'id, category_id, content, is_done, is_pinned, priority, created_at, updated_at',
+        )
         .order('created_at', { ascending: false }),
       supabase
         .from('categories')

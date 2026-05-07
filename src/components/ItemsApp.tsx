@@ -7,7 +7,10 @@ import {
   toggleDone,
   updateItem,
   updateHeader,
+  updatePriority,
+  togglePin,
   signOut,
+  type DisplayType,
 } from '@/app/actions'
 import { CategoryManager } from './CategoryManager'
 
@@ -16,6 +19,8 @@ type Item = {
   category_id: string
   content: string
   is_done: boolean
+  is_pinned: boolean
+  priority: number | null
   created_at: string
   updated_at: string
 }
@@ -34,6 +39,8 @@ type OptimisticAction =
   | { type: 'delete'; id: string }
   | { type: 'toggle'; id: string; isDone: boolean }
   | { type: 'update'; id: string; content: string }
+  | { type: 'priority'; id: string; priority: number }
+  | { type: 'pin'; id: string; isPinned: boolean }
 
 function reducer(state: Item[], action: OptimisticAction): Item[] {
   switch (action.type) {
@@ -49,6 +56,44 @@ function reducer(state: Item[], action: OptimisticAction): Item[] {
       return state.map((i) =>
         i.id === action.id ? { ...i, content: action.content } : i,
       )
+    case 'priority':
+      return state.map((i) =>
+        i.id === action.id ? { ...i, priority: action.priority } : i,
+      )
+    case 'pin':
+      return state.map((i) =>
+        i.id === action.id ? { ...i, is_pinned: action.isPinned } : i,
+      )
+  }
+}
+
+function sortItems(items: Item[], displayType: DisplayType): Item[] {
+  const arr = [...items]
+  switch (displayType) {
+    case 'checklist':
+      // 미완료 위로, 그 다음 최신순
+      return arr.sort((a, b) => {
+        if (a.is_done !== b.is_done) return a.is_done ? 1 : -1
+        return b.created_at.localeCompare(a.created_at)
+      })
+    case 'priority':
+      // priority 높은 순, null은 뒤로
+      return arr.sort((a, b) => {
+        const ap = a.priority ?? -1
+        const bp = b.priority ?? -1
+        if (ap !== bp) return bp - ap
+        return b.created_at.localeCompare(a.created_at)
+      })
+    case 'rule':
+      // 핀 위로, 그 다음 최신순
+      return arr.sort((a, b) => {
+        if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1
+        return b.created_at.localeCompare(a.created_at)
+      })
+    case 'list':
+    default:
+      // 최신순
+      return arr.sort((a, b) => b.created_at.localeCompare(a.created_at))
   }
 }
 
@@ -64,12 +109,6 @@ export function ItemsApp({
   const [selectedId, setSelectedId] = useState<string>('')
   const [draft, setDraft] = useState('')
   const [managerOpen, setManagerOpen] = useState(false)
-
-  // 사용자가 선택한 id가 categories에 있으면 그걸, 없으면 첫 번째 카테고리
-  const activeId =
-    categories.find((c) => c.id === selectedId)?.id ??
-    categories[0]?.id ??
-    ''
   const [, startTransition] = useTransition()
   const [optimisticItems, applyOptimistic] = useOptimistic(items, reducer)
   const [optimisticHeader, applyOptimisticHeader] = useOptimistic(
@@ -77,9 +116,23 @@ export function ItemsApp({
     (_, next: string) => next,
   )
 
+  const activeId =
+    categories.find((c) => c.id === selectedId)?.id ??
+    categories[0]?.id ??
+    ''
+
   const activeMeta = categories.find((c) => c.id === activeId) ?? categories[0]
-  const filtered = optimisticItems.filter((i) => i.category_id === activeId)
-  const isChecklist = activeMeta?.display_type === 'checklist'
+  const activeType = (activeMeta?.display_type ?? 'list') as DisplayType
+
+  const filtered = sortItems(
+    optimisticItems.filter((i) => i.category_id === activeId),
+    activeType,
+  )
+
+  const isChecklist = activeType === 'checklist'
+  const isPriority = activeType === 'priority'
+  const isRule = activeType === 'rule'
+
   const doneCount = isChecklist
     ? filtered.filter((i) => i.is_done).length
     : 0
@@ -99,6 +152,8 @@ export function ItemsApp({
           category_id: activeId,
           content,
           is_done: false,
+          is_pinned: false,
+          priority: null,
           created_at: now,
           updated_at: now,
         },
@@ -130,6 +185,20 @@ export function ItemsApp({
     })
   }
 
+  function onChangePriority(id: string, priority: number) {
+    startTransition(async () => {
+      applyOptimistic({ type: 'priority', id, priority })
+      await updatePriority(id, priority)
+    })
+  }
+
+  function onTogglePin(id: string, current: boolean) {
+    startTransition(async () => {
+      applyOptimistic({ type: 'pin', id, isPinned: !current })
+      await togglePin(id, !current)
+    })
+  }
+
   function onUpdateHeader(text: string) {
     const trimmed = text.trim()
     if (!trimmed) return
@@ -140,12 +209,22 @@ export function ItemsApp({
   }
 
   if (!activeMeta) {
-    // 카테고리가 없는 경우 (예외) — 안내
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-4 text-center">
-        <p className="text-warm-soft text-sm">
+        <p className="text-warm-soft mb-4 text-sm">
           카테고리가 없어요. 먼저 카테고리를 추가해주세요.
         </p>
+        <button
+          onClick={() => setManagerOpen(true)}
+          className="rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-300/50"
+        >
+          + 카테고리 추가
+        </button>
+        <CategoryManager
+          open={managerOpen}
+          onClose={() => setManagerOpen(false)}
+          categories={categories}
+        />
       </main>
     )
   }
@@ -234,7 +313,12 @@ export function ItemsApp({
 
       <section>
         <div className="mb-3 flex items-end justify-between px-1">
-          <span className="section-label">{activeMeta.name}</span>
+          <div className="flex items-baseline gap-2">
+            <span className="section-label">{activeMeta.name}</span>
+            <span className="text-warm-soft text-[10px] uppercase tracking-wider opacity-70">
+              {activeType}
+            </span>
+          </div>
           <span className="text-warm-soft text-xs">
             {isChecklist && filtered.length > 0
               ? `${doneCount} / ${filtered.length}개 완료`
@@ -252,13 +336,26 @@ export function ItemsApp({
             <ItemRow
               key={item.id}
               item={item}
-              showCheckbox={isChecklist}
+              displayType={activeType}
               onDelete={onDelete}
               onToggle={onToggle}
               onUpdate={onUpdate}
+              onChangePriority={onChangePriority}
+              onTogglePin={onTogglePin}
             />
           ))}
         </ul>
+
+        {isPriority && filtered.length > 0 && (
+          <p className="text-warm-soft mt-3 text-center text-[11px]">
+            우선순위는 1~10. 클릭해서 변경
+          </p>
+        )}
+        {isRule && filtered.length > 0 && (
+          <p className="text-warm-soft mt-3 text-center text-[11px]">
+            📌 클릭해서 중요한 규칙 상단 고정
+          </p>
+        )}
       </section>
     </main>
   )
@@ -338,18 +435,23 @@ function EditableHeader({
 
 function ItemRow({
   item,
-  showCheckbox,
+  displayType,
   onDelete,
   onToggle,
   onUpdate,
+  onChangePriority,
+  onTogglePin,
 }: {
   item: Item
-  showCheckbox: boolean
+  displayType: DisplayType
   onDelete: (id: string) => void
   onToggle: (id: string, current: boolean) => void
   onUpdate: (id: string, content: string) => void
+  onChangePriority: (id: string, priority: number) => void
+  onTogglePin: (id: string, current: boolean) => void
 }) {
   const [editing, setEditing] = useState(false)
+  const [priorityOpen, setPriorityOpen] = useState(false)
   const [draft, setDraft] = useState(item.content)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -388,12 +490,22 @@ function ItemRow({
     }
   }
 
+  const isChecklist = displayType === 'checklist'
+  const isPriority = displayType === 'priority'
+  const isRule = displayType === 'rule'
+  const isSaving = item.id.startsWith('temp-')
+  const disableActions = editing || isSaving
+
   return (
-    <li className="card group flex items-center gap-3 rounded-2xl px-4 py-3.5 transition hover:card-active">
-      {showCheckbox && (
+    <li
+      className={`card group flex items-center gap-3 rounded-2xl px-4 py-3.5 transition hover:card-active ${
+        isRule && item.is_pinned ? 'border-orange-400/60 bg-orange-50/50' : ''
+      } ${isSaving ? 'animate-pulse opacity-60' : ''}`}
+    >
+      {isChecklist && (
         <button
           onClick={() => onToggle(item.id, item.is_done)}
-          disabled={editing}
+          disabled={disableActions}
           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
             item.is_done
               ? 'border-orange-400 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm shadow-orange-300/50'
@@ -402,6 +514,22 @@ function ItemRow({
           aria-label="완료 토글"
         >
           {item.is_done && <span className="text-xs leading-none">✓</span>}
+        </button>
+      )}
+
+      {isRule && (
+        <button
+          onClick={() => onTogglePin(item.id, item.is_pinned)}
+          disabled={disableActions}
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-base transition ${
+            item.is_pinned
+              ? 'bg-orange-100 text-orange-600 shadow-sm shadow-orange-200/60'
+              : 'text-stone-400 hover:bg-orange-50 hover:text-orange-500'
+          }`}
+          aria-label={item.is_pinned ? '핀 해제' : '핀 고정'}
+          title={item.is_pinned ? '핀 해제' : '핀 고정'}
+        >
+          📌
         </button>
       )}
 
@@ -418,8 +546,9 @@ function ItemRow({
         <button
           type="button"
           onClick={startEdit}
+          disabled={isSaving}
           className={`text-warm flex-1 cursor-text text-left text-sm ${
-            showCheckbox && item.is_done
+            isChecklist && item.is_done
               ? 'text-warm-soft line-through opacity-60'
               : ''
           }`}
@@ -428,10 +557,51 @@ function ItemRow({
         </button>
       )}
 
+      {isPriority && !editing && (
+        <div className="relative">
+          <button
+            onClick={() => setPriorityOpen((v) => !v)}
+            disabled={isSaving}
+            className={`flex h-7 min-w-[2rem] items-center justify-center rounded-full px-2 text-xs font-semibold transition ${
+              item.priority
+                ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm shadow-orange-300/50'
+                : 'card-subtle text-warm-soft'
+            }`}
+            aria-label="우선순위 변경"
+          >
+            {item.priority ?? '–'}
+          </button>
+          {priorityOpen && (
+            <div className="absolute right-0 top-9 z-20 w-52 rounded-xl border-[1.5px] border-[#d4ad7a] bg-white p-2 shadow-lg">
+              <div className="grid grid-cols-5 gap-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => {
+                      onChangePriority(item.id, n)
+                      setPriorityOpen(false)
+                    }}
+                    className={`flex aspect-square w-full items-center justify-center rounded-md text-xs font-semibold transition ${
+                      item.priority === n
+                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm'
+                        : 'text-warm-soft hover:bg-orange-50 hover:text-warm'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {!editing && (
         <button
           onClick={() => onDelete(item.id)}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-base text-stone-400 transition hover:bg-red-500/10 hover:text-red-500"
+          disabled={isSaving}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-base text-stone-400 transition hover:bg-red-500/10 hover:text-red-500 disabled:opacity-30"
           aria-label="삭제"
         >
           ✕
