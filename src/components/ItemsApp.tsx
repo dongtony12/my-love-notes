@@ -230,7 +230,7 @@ export function ItemsApp({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-24 pt-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pb-24 pt-8">
       <header className="mb-7 flex items-center justify-between gap-2">
         <EditableHeader value={optimisticHeader} onSave={onUpdateHeader} />
         <div className="flex shrink-0 items-center gap-1.5">
@@ -260,34 +260,18 @@ export function ItemsApp({
         categories={categories}
       />
 
-      <section className="mb-7">
+      <section className="mb-7 min-w-0">
         <div className="mb-2 flex items-center justify-between px-1">
           <span className="section-label">카테고리</span>
         </div>
-        <nav
-          className="card grid gap-1 rounded-2xl p-1.5"
-          style={{
-            gridTemplateColumns: `repeat(${Math.min(categories.length, 4)}, minmax(0, 1fr))`,
-          }}
-        >
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setSelectedId(c.id)}
-              className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium transition ${
-                activeId === c.id
-                  ? 'card-active text-warm'
-                  : 'text-warm-soft hover:text-warm'
-              }`}
-            >
-              <span className="text-lg">{c.emoji}</span>
-              <span className="truncate">{c.name}</span>
-            </button>
-          ))}
-        </nav>
+        <CategoryTabs
+          categories={categories}
+          activeId={activeId}
+          onSelect={setSelectedId}
+        />
       </section>
 
-      <section className="mb-7">
+      <section className="mb-7 min-w-0">
         <div className="mb-2 flex items-center justify-between px-1">
           <span className="section-label">추가하기</span>
         </div>
@@ -311,7 +295,7 @@ export function ItemsApp({
         </form>
       </section>
 
-      <section>
+      <section className="min-w-0">
         <div className="mb-3 flex items-end justify-between px-1">
           <div className="flex items-baseline gap-2">
             <span className="section-label">{activeMeta.name}</span>
@@ -358,6 +342,104 @@ export function ItemsApp({
         )}
       </section>
     </main>
+  )
+}
+
+function CategoryTabs({
+  categories,
+  activeId,
+  onSelect,
+}: {
+  categories: Category[]
+  activeId: string
+  onSelect: (id: string) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const isScrollable = categories.length > 4
+
+  // 활성 탭이 화면 밖이면 자동으로 보이도록 스크롤
+  useEffect(() => {
+    if (!isScrollable || !activeId) return
+    const tab = tabRefs.current.get(activeId)
+    tab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  }, [activeId, isScrollable])
+
+  if (!isScrollable) {
+    return (
+      <nav
+        className="card grid gap-1 rounded-2xl p-1.5"
+        style={{
+          gridTemplateColumns: `repeat(${Math.max(categories.length, 1)}, minmax(0, 1fr))`,
+        }}
+      >
+        {categories.map((c) => (
+          <CategoryTab
+            key={c.id}
+            category={c}
+            active={activeId === c.id}
+            onClick={() => onSelect(c.id)}
+            mode="grid"
+          />
+        ))}
+      </nav>
+    )
+  }
+
+  return (
+    <div className="relative min-w-0">
+      <nav
+        ref={containerRef}
+        className="card scrollbar-hide flex w-full min-w-0 gap-1 overflow-x-auto rounded-2xl p-1.5"
+      >
+        {categories.map((c) => (
+          <CategoryTab
+            key={c.id}
+            category={c}
+            active={activeId === c.id}
+            onClick={() => onSelect(c.id)}
+            mode="scroll"
+            ref={(el) => {
+              if (el) tabRefs.current.set(c.id, el)
+              else tabRefs.current.delete(c.id)
+            }}
+          />
+        ))}
+      </nav>
+      {/* 우측 fade gradient — 더 있다는 시각 신호 */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-[#fff8ec] to-transparent" />
+    </div>
+  )
+}
+
+function CategoryTab({
+  category,
+  active,
+  onClick,
+  mode,
+  ref,
+}: {
+  category: Category
+  active: boolean
+  onClick: () => void
+  mode: 'grid' | 'scroll'
+  ref?: (el: HTMLButtonElement | null) => void
+}) {
+  return (
+    <button
+      ref={ref}
+      onClick={onClick}
+      className={`flex shrink-0 flex-col items-center gap-1 rounded-xl text-[11px] font-medium transition ${
+        mode === 'scroll' ? 'min-w-[4.5rem] px-3 py-2.5' : 'px-2 py-2.5'
+      } ${
+        active
+          ? 'card-active text-warm'
+          : 'text-warm-soft hover:text-warm'
+      }`}
+    >
+      <span className="text-lg">{category.emoji}</span>
+      <span className="truncate">{category.name}</span>
+    </button>
   )
 }
 

@@ -117,6 +117,15 @@ body::after {
     border-top: 1px dashed rgba(190, 110, 60, 0.18);
   }
 
+  /* 가로 스크롤 탭 - 스크롤바 숨김 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .text-warm {
     color: var(--foreground);
   }
