@@ -39,6 +39,19 @@ export async function toggleDone(id: string, isDone: boolean) {
   revalidatePath('/')
 }
 
+export async function updateItem(id: string, content: string) {
+  const trimmed = content.trim()
+  if (!trimmed) return
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('items')
+    .update({ content: trimmed })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
+
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
