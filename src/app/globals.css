@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #3d2817;
+  --foreground-soft: #7a5c45;
 }
 
 @theme inline {
-  --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  min-height: 100dvh;
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  background: #fff8ec;
+  overflow-x: hidden;
+}
+
+/* 배경 코너에 살짝 떠있는 따뜻한 블롭 (살구톤) */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::before {
+  width: 22rem;
+  height: 22rem;
+  top: -7rem;
+  right: -7rem;
+  background: radial-gradient(circle, #ffc8a8 0%, #ffd7bd 55%, transparent 100%);
+  opacity: 0.55;
+}
+
+body::after {
+  width: 20rem;
+  height: 20rem;
+  bottom: -6rem;
+  left: -6rem;
+  background: radial-gradient(circle, #ffd0c2 0%, #ffe2d4 55%, transparent 100%);
+  opacity: 0.5;
+}
+
+@layer utilities {
+  /* 솔리드 카드 - 가독성 최우선 */
+  .card {
+    background: #ffffff;
+    border: 1px solid #fae5cc;
+    box-shadow: 0 2px 6px -2px rgba(190, 110, 60, 0.08);
+  }
+
+  .card-active {
+    background: #ffffff;
+    border: 1px solid #fbcfa3;
+    box-shadow: 0 4px 14px -4px rgba(190, 110, 60, 0.18);
+  }
+
+  .card-subtle {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(250, 229, 204, 0.7);
+  }
+
+  /* 인풋 - 명확한 보더로 구분 */
+  .input {
+    background: #ffffff;
+    border: 1.5px solid #efd6b3;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .input:hover {
+    border-color: #e6bf8a;
+  }
+  .input:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    outline: none;
+  }
+  .input::placeholder {
+    color: #c5a785;
+  }
+
+  /* 섹션 라벨 */
+  .section-label {
+    color: var(--foreground-soft);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* 섹션 구분선 */
+  .section-divider {
+    border-top: 1px dashed rgba(190, 110, 60, 0.18);
+  }
+
+  .text-warm {
+    color: var(--foreground);
+  }
+  .text-warm-soft {
+    color: var(--foreground-soft);
+  }
 }

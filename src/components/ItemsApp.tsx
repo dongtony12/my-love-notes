@@ -25,6 +25,8 @@ export function ItemsApp({ items }: { items: Item[] }) {
 
   const filtered = items.filter((i) => i.category === active)
   const activeMeta = CATEGORIES.find((c) => c.key === active)!
+  const doneCount =
+    active === 'wishlist' ? filtered.filter((i) => i.is_done).length : 0
 
   function onAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -49,95 +51,126 @@ export function ItemsApp({ items }: { items: Item[] }) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-24 pt-6">
-      <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold">my love notes</h1>
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-24 pt-8">
+      {/* 헤더 섹션 */}
+      <header className="mb-7 flex items-center justify-between">
+        <h1 className="text-warm text-xl font-bold tracking-tight">
+          🧡 my love notes
+        </h1>
         <form action={signOut}>
           <button
             type="submit"
-            className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+            className="card-subtle text-warm-soft rounded-full px-3 py-1 text-xs transition hover:[background:#ffffff]"
           >
             로그아웃
           </button>
         </form>
       </header>
 
-      <nav className="mb-6 grid grid-cols-4 gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-900">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.key}
-            onClick={() => setActive(c.key)}
-            className={`flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-xs transition ${
-              active === c.key
-                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-100'
-                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            <span className="text-base">{c.emoji}</span>
-            <span className="truncate">{c.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      <form onSubmit={onAdd} className="mb-4 flex gap-2">
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={`${activeMeta.label} 추가...`}
-          className="flex-1 rounded-lg border border-neutral-300 bg-transparent px-4 py-3 text-base outline-none focus:border-neutral-900 dark:border-neutral-700 dark:focus:border-neutral-100"
-        />
-        <button
-          type="submit"
-          disabled={isPending || !draft.trim()}
-          className="rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
-        >
-          추가
-        </button>
-      </form>
-
-      <ul className="flex flex-col gap-2">
-        {filtered.length === 0 && (
-          <li className="rounded-lg border border-dashed border-neutral-300 p-8 text-center text-sm text-neutral-500 dark:border-neutral-700">
-            아직 항목이 없어요
-          </li>
-        )}
-        {filtered.map((item) => (
-          <li
-            key={item.id}
-            className="group flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950"
-          >
-            {active === 'wishlist' && (
-              <button
-                onClick={() => onToggle(item.id, item.is_done)}
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition ${
-                  item.is_done
-                    ? 'border-emerald-500 bg-emerald-500 text-white'
-                    : 'border-neutral-300 dark:border-neutral-700'
-                }`}
-                aria-label="완료 토글"
-              >
-                {item.is_done && <span className="text-xs">✓</span>}
-              </button>
-            )}
-            <span
-              className={`flex-1 text-sm ${
-                active === 'wishlist' && item.is_done
-                  ? 'text-neutral-400 line-through'
-                  : ''
+      {/* 카테고리 섹션 */}
+      <section className="mb-7">
+        <div className="mb-2 flex items-center justify-between px-1">
+          <span className="section-label">카테고리</span>
+        </div>
+        <nav className="card grid grid-cols-4 gap-1 rounded-2xl p-1.5">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setActive(c.key)}
+              className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium transition ${
+                active === c.key
+                  ? 'card-active text-warm'
+                  : 'text-warm-soft hover:text-warm'
               }`}
             >
-              {item.content}
-            </span>
-            <button
-              onClick={() => onDelete(item.id)}
-              className="text-xs text-neutral-400 opacity-0 transition group-hover:opacity-100 hover:text-red-500"
-              aria-label="삭제"
-            >
-              삭제
+              <span className="text-lg">{c.emoji}</span>
+              <span className="truncate">{c.label}</span>
             </button>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </nav>
+      </section>
+
+      {/* 추가 섹션 */}
+      <section className="mb-7">
+        <div className="mb-2 flex items-center justify-between px-1">
+          <span className="section-label">추가하기</span>
+        </div>
+        <form onSubmit={onAdd} className="flex gap-2">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={`${activeMeta.label} 추가...`}
+            className="input text-warm flex-1 rounded-2xl px-4 py-3 text-base"
+          />
+          <button
+            type="submit"
+            disabled={isPending || !draft.trim()}
+            className="rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-300/50 transition hover:shadow-lg hover:shadow-orange-300/70 disabled:opacity-40 disabled:shadow-none"
+          >
+            추가
+          </button>
+        </form>
+      </section>
+
+      {/* 리스트 섹션 */}
+      <section>
+        <div className="mb-3 flex items-end justify-between px-1">
+          <div className="flex items-baseline gap-2">
+            <span className="section-label">{activeMeta.label}</span>
+          </div>
+          <span className="text-warm-soft text-xs">
+            {active === 'wishlist' && filtered.length > 0
+              ? `${doneCount} / ${filtered.length}개 완료`
+              : `${filtered.length}개`}
+          </span>
+        </div>
+
+        <ul className="flex flex-col gap-2.5">
+          {filtered.length === 0 && (
+            <li className="card-subtle text-warm-soft rounded-2xl p-10 text-center text-sm">
+              {activeMeta.emoji} 아직 항목이 없어요
+            </li>
+          )}
+          {filtered.map((item) => (
+            <li
+              key={item.id}
+              className="card group flex items-center gap-3 rounded-2xl px-4 py-3.5 transition hover:card-active"
+            >
+              {active === 'wishlist' && (
+                <button
+                  onClick={() => onToggle(item.id, item.is_done)}
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
+                    item.is_done
+                      ? 'border-orange-400 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm shadow-orange-300/50'
+                      : 'border-stone-300'
+                  }`}
+                  aria-label="완료 토글"
+                >
+                  {item.is_done && (
+                    <span className="text-xs leading-none">✓</span>
+                  )}
+                </button>
+              )}
+              <span
+                className={`text-warm flex-1 text-sm ${
+                  active === 'wishlist' && item.is_done
+                    ? 'text-warm-soft line-through opacity-60'
+                    : ''
+                }`}
+              >
+                {item.content}
+              </span>
+              <button
+                onClick={() => onDelete(item.id)}
+                className="text-warm-soft rounded-full px-2 py-1 text-xs opacity-0 transition group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500"
+                aria-label="삭제"
+              >
+                삭제
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   )
 }
