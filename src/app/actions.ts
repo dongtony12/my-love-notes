@@ -76,3 +76,88 @@ export async function updateHeader(text: string) {
   if (error) throw new Error(error.message)
   revalidatePath('/')
 }
+
+export async function createCategory(input: {
+  name: string
+  emoji: string
+  displayType: DisplayType
+}) {
+  const name = input.name.trim()
+  const emoji = input.emoji.trim() || '📌'
+  if (!name) return
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // 가장 큰 position 찾아서 +1
+  const { data: maxRow } = await supabase
+    .from('categories')
+    .select('position')
+    .eq('user_id', user.id)
+    .order('position', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const nextPosition = (maxRow?.position ?? -1) + 1
+
+  const { error } = await supabase.from('categories').insert({
+    user_id: user.id,
+    name,
+    emoji,
+    display_type: input.displayType,
+    position: nextPosition,
+    is_default: false,
+  })
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
+
+export async function updateCategory(
+  id: string,
+  patch: { name?: string; emoji?: string; displayType?: DisplayType },
+) {
+  const update: Database['public']['Tables']['categories']['Update'] = {}
+  if (patch.name !== undefined) {
+    const trimmed = patch.name.trim()
+    if (!trimmed) return
+    update.name = trimmed
+  }
+  if (patch.emoji !== undefined) {
+    update.emoji = patch.emoji.trim() || '📌'
+  }
+  if (patch.displayType !== undefined) {
+    update.display_type = patch.displayType
+  }
+  if (Object.keys(update).length === 0) return
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('categories').update(update).eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
+
+export async function deleteCategory(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('categories').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
+
+export async function reorderCategories(orderedIds: string[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // 한 번의 트랜잭션처럼: 순서대로 position 업데이트
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await supabase
+      .from('categories')
+      .update({ position: i })
+      .eq('id', orderedIds[i])
+      .eq('user_id', user.id)
+    if (error) throw new Error(error.message)
+  }
+  revalidatePath('/')
+}

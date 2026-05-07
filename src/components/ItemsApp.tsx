@@ -9,6 +9,7 @@ import {
   updateHeader,
   signOut,
 } from '@/app/actions'
+import { CategoryManager } from './CategoryManager'
 
 type Item = {
   id: string
@@ -60,10 +61,15 @@ export function ItemsApp({
   categories: Category[]
   headerText: string
 }) {
-  const [activeId, setActiveId] = useState<string>(
-    () => categories[0]?.id ?? '',
-  )
+  const [selectedId, setSelectedId] = useState<string>('')
   const [draft, setDraft] = useState('')
+  const [managerOpen, setManagerOpen] = useState(false)
+
+  // 사용자가 선택한 id가 categories에 있으면 그걸, 없으면 첫 번째 카테고리
+  const activeId =
+    categories.find((c) => c.id === selectedId)?.id ??
+    categories[0]?.id ??
+    ''
   const [, startTransition] = useTransition()
   const [optimisticItems, applyOptimistic] = useOptimistic(items, reducer)
   const [optimisticHeader, applyOptimisticHeader] = useOptimistic(
@@ -148,15 +154,32 @@ export function ItemsApp({
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-24 pt-8">
       <header className="mb-7 flex items-center justify-between gap-2">
         <EditableHeader value={optimisticHeader} onSave={onUpdateHeader} />
-        <form action={signOut}>
+        <div className="flex shrink-0 items-center gap-1.5">
           <button
-            type="submit"
-            className="card-subtle text-warm-soft shrink-0 rounded-full px-3 py-1 text-xs transition hover:[background:#ffffff]"
+            type="button"
+            onClick={() => setManagerOpen(true)}
+            className="card-subtle text-warm-soft flex h-8 w-8 items-center justify-center rounded-full text-base transition hover:[background:#ffffff]"
+            aria-label="카테고리 관리"
+            title="카테고리 관리"
           >
-            로그아웃
+            ⚙
           </button>
-        </form>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="card-subtle text-warm-soft rounded-full px-3 py-1 text-xs transition hover:[background:#ffffff]"
+            >
+              로그아웃
+            </button>
+          </form>
+        </div>
       </header>
+
+      <CategoryManager
+        open={managerOpen}
+        onClose={() => setManagerOpen(false)}
+        categories={categories}
+      />
 
       <section className="mb-7">
         <div className="mb-2 flex items-center justify-between px-1">
@@ -171,7 +194,7 @@ export function ItemsApp({
           {categories.map((c) => (
             <button
               key={c.id}
-              onClick={() => setActiveId(c.id)}
+              onClick={() => setSelectedId(c.id)}
               className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-[11px] font-medium transition ${
                 activeId === c.id
                   ? 'card-active text-warm'
