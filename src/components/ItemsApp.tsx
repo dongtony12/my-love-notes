@@ -6,6 +6,7 @@ import {
   deleteItem,
   toggleDone,
   updateItem,
+  updateHeader,
   signOut,
   type Category,
 } from '@/app/actions'
@@ -48,11 +49,21 @@ function reducer(state: Item[], action: OptimisticAction): Item[] {
   }
 }
 
-export function ItemsApp({ items }: { items: Item[] }) {
+export function ItemsApp({
+  items,
+  headerText,
+}: {
+  items: Item[]
+  headerText: string
+}) {
   const [active, setActive] = useState<Category>('dont')
   const [draft, setDraft] = useState('')
   const [, startTransition] = useTransition()
   const [optimisticItems, applyOptimistic] = useOptimistic(items, reducer)
+  const [optimisticHeader, applyOptimisticHeader] = useOptimistic(
+    headerText,
+    (_, next: string) => next,
+  )
 
   const filtered = optimisticItems.filter((i) => i.category === active)
   const activeMeta = CATEGORIES.find((c) => c.key === active)!
@@ -103,16 +114,23 @@ export function ItemsApp({ items }: { items: Item[] }) {
     })
   }
 
+  function onUpdateHeader(text: string) {
+    const trimmed = text.trim()
+    if (!trimmed) return
+    startTransition(async () => {
+      applyOptimisticHeader(trimmed)
+      await updateHeader(trimmed)
+    })
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-24 pt-8">
-      <header className="mb-7 flex items-center justify-between">
-        <h1 className="text-warm text-xl font-bold tracking-tight">
-          🧡 my love notes
-        </h1>
+      <header className="mb-7 flex items-center justify-between gap-2">
+        <EditableHeader value={optimisticHeader} onSave={onUpdateHeader} />
         <form action={signOut}>
           <button
             type="submit"
-            className="card-subtle text-warm-soft rounded-full px-3 py-1 text-xs transition hover:[background:#ffffff]"
+            className="card-subtle text-warm-soft shrink-0 rounded-full px-3 py-1 text-xs transition hover:[background:#ffffff]"
           >
             로그아웃
           </button>
@@ -194,6 +212,78 @@ export function ItemsApp({ items }: { items: Item[] }) {
         </ul>
       </section>
     </main>
+  )
+}
+
+function EditableHeader({
+  value,
+  onSave,
+}: {
+  value: string
+  onSave: (text: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [editing])
+
+  function startEdit() {
+    setDraft(value)
+    setEditing(true)
+  }
+
+  function commit() {
+    const trimmed = draft.trim()
+    if (trimmed && trimmed !== value) {
+      onSave(trimmed)
+    }
+    setEditing(false)
+  }
+
+  function cancel() {
+    setDraft(value)
+    setEditing(false)
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      commit()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      cancel()
+    }
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={onKeyDown}
+        onBlur={commit}
+        maxLength={40}
+        className="text-warm flex-1 rounded-md border-[1.5px] border-orange-400 bg-white px-2 py-1 text-xl font-bold tracking-tight outline-none shadow-[0_0_0_3px_rgba(254,215,170,0.5)]"
+      />
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={startEdit}
+      className="text-warm flex-1 cursor-text truncate text-left text-xl font-bold tracking-tight transition hover:opacity-80"
+      title="클릭해서 헤더 변경"
+    >
+      {value}
+    </button>
   )
 }
 

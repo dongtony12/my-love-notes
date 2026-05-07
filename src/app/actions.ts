@@ -57,3 +57,19 @@ export async function signOut() {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+export async function updateHeader(text: string) {
+  const trimmed = text.trim()
+  if (!trimmed) return
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({ user_id: user.id, header_text: trimmed }, { onConflict: 'user_id' })
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
