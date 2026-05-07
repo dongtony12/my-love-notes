@@ -70,22 +70,37 @@ body::after {
     border: 1px solid rgba(250, 229, 204, 0.7);
   }
 
-  /* 인풋 - 명확한 보더로 구분 */
+  /* 인풋 - 따뜻한 탄 톤 보더 */
   .input {
     background: #ffffff;
-    border: 1.5px solid #efd6b3;
+    border: 1.5px solid #d4ad7a;
     transition: border-color 150ms ease, box-shadow 150ms ease;
   }
   .input:hover {
-    border-color: #e6bf8a;
+    border-color: #b8884f;
   }
   .input:focus {
-    border-color: #f59e0b;
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    border-color: #fb923c;
+    box-shadow: 0 0 0 3px rgba(254, 215, 170, 0.5);
     outline: none;
   }
   .input::placeholder {
     color: #c5a785;
+  }
+
+  /* 인풋+버튼 묶는 패널 - 명확한 보더, 포커스 시 부드러운 글로우 */
+  .panel {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1.5px solid #d4ad7a;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .panel:hover {
+    border-color: #b8884f;
+  }
+  .panel:focus-within {
+    border-color: #fb923c;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(254, 215, 170, 0.5);
   }
 
   /* 섹션 라벨 */

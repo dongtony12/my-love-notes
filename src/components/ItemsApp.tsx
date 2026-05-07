@@ -95,17 +95,20 @@ export function ItemsApp({ items }: { items: Item[] }) {
         <div className="mb-2 flex items-center justify-between px-1">
           <span className="section-label">추가하기</span>
         </div>
-        <form onSubmit={onAdd} className="flex gap-2">
+        <form
+          onSubmit={onAdd}
+          className="flex items-center gap-1.5 rounded-2xl border-[1.5px] border-[#d4ad7a] bg-white/60 p-1.5 transition-all hover:border-[#b8884f] focus-within:border-orange-400 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(254,215,170,0.5)]"
+        >
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={`${activeMeta.label} 추가...`}
-            className="input text-warm flex-1 rounded-2xl px-4 py-3 text-base"
+            className="text-warm flex-1 rounded-xl bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-stone-400"
           />
           <button
             type="submit"
             disabled={isPending || !draft.trim()}
-            className="rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-300/50 transition hover:shadow-lg hover:shadow-orange-300/70 disabled:opacity-40 disabled:shadow-none"
+            className="rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-300/50 transition hover:shadow-lg hover:shadow-orange-300/70 disabled:opacity-40 disabled:shadow-none"
           >
             추가
           </button>
