@@ -102,6 +102,7 @@ export async function createCategory(input: {
   name: string
   emoji: string
   displayType: DisplayType
+  parentId?: string | null
 }) {
   const name = input.name.trim()
   const emoji = input.emoji.trim() || '📌'
@@ -111,14 +112,18 @@ export async function createCategory(input: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // 가장 큰 position 찾아서 +1
-  const { data: maxRow } = await supabase
+  // 같은 그룹(같은 parent_id 또는 둘 다 NULL) 안에서 가장 큰 position +1
+  const parentFilter = supabase
     .from('categories')
     .select('position')
     .eq('user_id', user.id)
     .order('position', { ascending: false })
     .limit(1)
-    .maybeSingle()
+
+  const { data: maxRow } = await (input.parentId
+    ? parentFilter.eq('parent_id', input.parentId)
+    : parentFilter.is('parent_id', null)
+  ).maybeSingle()
 
   const nextPosition = (maxRow?.position ?? -1) + 1
 
@@ -129,6 +134,7 @@ export async function createCategory(input: {
     display_type: input.displayType,
     position: nextPosition,
     is_default: false,
+    parent_id: input.parentId ?? null,
   })
 
   if (error) throw new Error(error.message)
@@ -137,7 +143,12 @@ export async function createCategory(input: {
 
 export async function updateCategory(
   id: string,
-  patch: { name?: string; emoji?: string; displayType?: DisplayType },
+  patch: {
+    name?: string
+    emoji?: string
+    displayType?: DisplayType
+    parentId?: string | null
+  },
 ) {
   const update: Database['public']['Tables']['categories']['Update'] = {}
   if (patch.name !== undefined) {
@@ -150,6 +161,9 @@ export async function updateCategory(
   }
   if (patch.displayType !== undefined) {
     update.display_type = patch.displayType
+  }
+  if (patch.parentId !== undefined) {
+    update.parent_id = patch.parentId
   }
   if (Object.keys(update).length === 0) return
 

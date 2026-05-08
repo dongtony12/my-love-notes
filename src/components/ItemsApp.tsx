@@ -32,6 +32,7 @@ type Category = {
   display_type: string
   position: number
   is_default: boolean
+  parent_id: string | null
 }
 
 type OptimisticAction =
@@ -354,32 +355,80 @@ function CategoryTabs({
   activeId: string
   onSelect: (id: string) => void
 }) {
+  // 최상위 (parent_id === null), position 오름차순
+  const topLevel = categories.filter((c) => c.parent_id === null)
+  // 활성 카테고리의 부모 = 자식 행을 표시할 기준
+  const active = categories.find((c) => c.id === activeId)
+  const activeParentId = active
+    ? active.parent_id ?? active.id
+    : topLevel[0]?.id ?? null
+
+  const childRow = activeParentId
+    ? categories.filter((c) => c.parent_id === activeParentId)
+    : []
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <CategoryRow
+        items={topLevel}
+        activeId={activeParentId}
+        onSelect={onSelect}
+      />
+      {childRow.length > 0 && (
+        <CategoryRow
+          items={childRow}
+          activeId={activeId}
+          onSelect={onSelect}
+          variant="child"
+        />
+      )}
+    </div>
+  )
+}
+
+function CategoryRow({
+  items,
+  activeId,
+  onSelect,
+  variant = 'parent',
+}: {
+  items: Category[]
+  activeId: string | null
+  onSelect: (id: string) => void
+  variant?: 'parent' | 'child'
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const isScrollable = categories.length > 4
+  const isScrollable = items.length > 4
 
-  // 활성 탭이 화면 밖이면 자동으로 보이도록 스크롤
   useEffect(() => {
     if (!isScrollable || !activeId) return
     const tab = tabRefs.current.get(activeId)
     tab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }, [activeId, isScrollable])
 
+  // 자식 행은 좀 더 컴팩트하고 다른 톤
+  const wrapperClass =
+    variant === 'parent'
+      ? 'card rounded-2xl p-1.5'
+      : 'card-subtle rounded-2xl p-1'
+
   if (!isScrollable) {
     return (
       <nav
-        className="card grid gap-1 rounded-2xl p-1.5"
+        className={`grid gap-1 ${wrapperClass}`}
         style={{
-          gridTemplateColumns: `repeat(${Math.max(categories.length, 1)}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${Math.max(items.length, 1)}, minmax(0, 1fr))`,
         }}
       >
-        {categories.map((c) => (
+        {items.map((c) => (
           <CategoryTab
             key={c.id}
             category={c}
             active={activeId === c.id}
             onClick={() => onSelect(c.id)}
             mode="grid"
+            variant={variant}
           />
         ))}
       </nav>
@@ -390,15 +439,16 @@ function CategoryTabs({
     <div className="relative min-w-0">
       <nav
         ref={containerRef}
-        className="card scrollbar-hide flex w-full min-w-0 gap-1 overflow-x-auto rounded-2xl p-1.5"
+        className={`scrollbar-hide flex w-full min-w-0 gap-1 overflow-x-auto ${wrapperClass}`}
       >
-        {categories.map((c) => (
+        {items.map((c) => (
           <CategoryTab
             key={c.id}
             category={c}
             active={activeId === c.id}
             onClick={() => onSelect(c.id)}
             mode="scroll"
+            variant={variant}
             ref={(el) => {
               if (el) tabRefs.current.set(c.id, el)
               else tabRefs.current.delete(c.id)
@@ -406,7 +456,6 @@ function CategoryTabs({
           />
         ))}
       </nav>
-      {/* 우측 fade gradient — 더 있다는 시각 신호 */}
       <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-[#fff8ec] to-transparent" />
     </div>
   )
@@ -417,27 +466,38 @@ function CategoryTab({
   active,
   onClick,
   mode,
+  variant = 'parent',
   ref,
 }: {
   category: Category
   active: boolean
   onClick: () => void
   mode: 'grid' | 'scroll'
+  variant?: 'parent' | 'child'
   ref?: (el: HTMLButtonElement | null) => void
 }) {
+  const isChild = variant === 'child'
   return (
     <button
       ref={ref}
       onClick={onClick}
-      className={`flex shrink-0 flex-col items-center gap-1 rounded-xl text-[11px] font-medium transition ${
-        mode === 'scroll' ? 'min-w-[4.5rem] px-3 py-2.5' : 'px-2 py-2.5'
+      className={`flex shrink-0 items-center justify-center gap-1.5 rounded-xl text-[11px] font-medium transition ${
+        isChild ? 'flex-row py-1.5' : 'flex-col py-2.5'
+      } ${
+        mode === 'scroll'
+          ? isChild
+            ? 'min-w-[4rem] px-2.5'
+            : 'min-w-[4.5rem] px-3'
+          : isChild
+            ? 'px-2'
+            : 'px-2'
       } ${
         active
           ? 'card-active text-warm'
           : 'text-warm-soft hover:text-warm'
       }`}
     >
-      <span className="text-lg">{category.emoji}</span>
+      <span className={isChild ? 'text-sm' : 'text-lg'}>{category.emoji}</span>
       <span className="truncate">{category.name}</span>
     </button>
   )

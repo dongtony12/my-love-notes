@@ -70,6 +70,28 @@ body::after {
     border: 1px solid rgba(250, 229, 204, 0.7);
   }
 
+  /* 셀렉트 - 인풋과 톤 통일 + SVG 화살표 내장 */
+  .select {
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a5c45' d='M3 4.5L6 8 9 4.5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 0.7rem 0.7rem;
+    border: 1.5px solid #d4ad7a;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .select:hover {
+    border-color: #b8884f;
+  }
+  .select:focus {
+    border-color: #fb923c;
+    box-shadow: 0 0 0 3px rgba(254, 215, 170, 0.5);
+    outline: none;
+  }
+
   /* 인풋 - 따뜻한 탄 톤 보더 */
   .input {
     background: #ffffff;

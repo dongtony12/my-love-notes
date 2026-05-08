@@ -19,7 +19,7 @@ export default async function Home() {
         .order('created_at', { ascending: false }),
       supabase
         .from('categories')
-        .select('id, name, emoji, display_type, position, is_default')
+        .select('id, name, emoji, display_type, position, is_default, parent_id')
         .order('position', { ascending: true }),
       supabase
         .from('profiles')
