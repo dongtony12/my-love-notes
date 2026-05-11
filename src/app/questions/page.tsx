@@ -7,7 +7,7 @@ export default async function QuestionsPage() {
   if (!user) redirect('/login')
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-32 pt-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pb-32 pt-8">
       <header className="mb-7">
         <h1 className="text-warm text-xl font-bold tracking-tight">
           🤔 궁금한 질문
