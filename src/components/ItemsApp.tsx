@@ -689,7 +689,7 @@ function ItemRow({
           type="button"
           onClick={startEdit}
           disabled={isSaving}
-          className={`text-warm flex-1 cursor-text text-left text-sm ${
+          className={`text-warm flex-1 min-w-0 cursor-text text-left text-sm whitespace-pre-wrap break-words ${
             isChecklist && item.is_done
               ? 'text-warm-soft line-through opacity-60'
               : ''

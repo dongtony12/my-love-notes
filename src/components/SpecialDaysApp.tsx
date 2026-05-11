@@ -206,16 +206,16 @@ function DayCard({
         type="button"
         onClick={() => !isSaving && setEditing(true)}
         disabled={isSaving}
-        className="flex-1 cursor-text text-left"
+        className="flex-1 min-w-0 cursor-text text-left"
       >
         <div className="text-warm-soft text-[11px] font-medium tracking-wider">
           {formatDate(day.date)}
         </div>
-        <div className="text-warm mt-0.5 text-sm font-semibold">
+        <div className="text-warm mt-0.5 text-sm font-semibold whitespace-pre-wrap break-words">
           {day.title}
         </div>
         {day.content && (
-          <div className="text-warm-soft mt-1 text-xs leading-relaxed">
+          <div className="text-warm-soft mt-1 text-xs leading-relaxed whitespace-pre-wrap break-words">
             {day.content}
           </div>
         )}

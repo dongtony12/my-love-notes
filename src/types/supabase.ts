@@ -132,6 +132,36 @@ export type Database = {
         }
         Relationships: []
       }
+      questions: {
+        Row: {
+          answer: string | null
+          content: string
+          created_at: string
+          id: string
+          is_answered: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_answered?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_answered?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       special_days: {
         Row: {
           content: string | null
