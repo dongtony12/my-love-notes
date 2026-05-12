@@ -25,18 +25,22 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // proxy 단계에선 getUser() 대신 getClaims()로 JWT를 로컬에서만 검증.
+  // 네트워크 라운드트립이 없어서 라우팅 결정이 훨씬 빠르고, 실제 데이터 접근은
+  // 페이지/액션 단의 getUser() + RLS가 다시 검증하므로 안전함.
+  const { data } = await supabase.auth.getClaims()
+  const isAuthed = Boolean(data?.claims?.sub)
 
   const { pathname } = request.nextUrl
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth')
 
-  if (!user && !isAuthRoute) {
+  if (!isAuthed && !isAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  if (user && pathname === '/login') {
+  if (isAuthed && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
