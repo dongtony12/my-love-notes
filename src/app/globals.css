@@ -20,6 +20,8 @@ body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   background: #fff8ec;
   overflow-x: hidden;
+  /* iOS 노치/Dynamic Island, Android 상태바 영역 보호 */
+  padding-top: env(safe-area-inset-top, 0);
 }
 
 /* 배경 코너에 살짝 떠있는 따뜻한 블롭 (살구톤) */
