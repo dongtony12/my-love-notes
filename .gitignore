@@ -44,3 +44,21 @@ next-env.d.ts
 # supabase CLI cache
 supabase/.temp/
 supabase/.branches/
+
+# Capacitor build outputs (네이티브 프로젝트 자체는 커밋. 빌드 산출물만 제외)
+ios/App/Pods/
+ios/App/build/
+ios/.xcuserstate
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/captures/
+android/local.properties
+android/app/release/
+
+# Capacitor 자동 동기화 파일 (cap sync로 재생성)
+ios/App/App/public/
+android/app/src/main/assets/public/

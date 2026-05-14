@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">my love notes</string>
+    <string name="title_activity_main">my love notes</string>
+    <string name="package_name">com.dongtony12.mylovenotes</string>
+    <string name="custom_url_scheme">com.dongtony12.mylovenotes</string>
+</resources>

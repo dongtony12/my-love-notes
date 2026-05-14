@@ -7,10 +7,17 @@
     "build": "next build",
     "start": "next start -p 4040",
     "lint": "eslint",
-    "db:types": "supabase gen types typescript --project-id wqhibinkpntsgnctijhz --schema public > src/types/supabase.ts"
+    "db:types": "supabase gen types typescript --project-id wqhibinkpntsgnctijhz --schema public > src/types/supabase.ts",
+    "cap:sync": "cap sync",
+    "cap:assets": "capacitor-assets generate --iconBackgroundColor '#fff8ec' --iconBackgroundColorDark '#fff8ec' --splashBackgroundColor '#fff8ec' --splashBackgroundColorDark '#fff8ec'",
+    "ios": "cap open ios",
+    "android": "cap open android"
   },
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
+    "@capacitor/android": "^8.3.3",
+    "@capacitor/core": "^8.3.3",
+    "@capacitor/ios": "^8.3.3",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.3",
     "next": "16.2.4",
@@ -18,6 +25,8 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.3.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
