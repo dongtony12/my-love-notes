@@ -231,7 +231,7 @@ export function ItemsApp({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pt-safe pb-safe-24">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pt-safe pb-safe-32">
       <header className="mb-7 flex items-center justify-between gap-2">
         <EditableHeader value={optimisticHeader} onSave={onUpdateHeader} />
         <div className="flex shrink-0 items-center gap-1.5">
