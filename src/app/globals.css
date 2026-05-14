@@ -20,8 +20,6 @@ body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   background: #fff8ec;
   overflow-x: hidden;
-  /* iOS 노치/Dynamic Island, Android 상태바 영역 보호 */
-  padding-top: env(safe-area-inset-top, 0);
 }
 
 /* 배경 코너에 살짝 떠있는 따뜻한 블롭 (살구톤) */
@@ -139,6 +137,17 @@ body::after {
   /* 섹션 구분선 */
   .section-divider {
     border-top: 1px dashed rgba(190, 110, 60, 0.18);
+  }
+
+  /* iOS 노치/홈 인디케이터 영역 safe-area 패딩 */
+  .pt-safe {
+    padding-top: calc(2rem + env(safe-area-inset-top, 0));
+  }
+  .pb-safe-24 {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0));
+  }
+  .pb-safe-32 {
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0));
   }
 
   /* 가로 스크롤 탭 - 스크롤바 숨김 */

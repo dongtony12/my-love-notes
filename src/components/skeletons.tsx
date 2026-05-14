@@ -7,7 +7,7 @@ function Pulse({ className = '' }: { className?: string }) {
 
 export function ItemsSkeleton() {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pb-24 pt-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pt-safe pb-safe-24">
       <header className="mb-7 flex items-center justify-between gap-2">
         <Pulse className="h-7 w-40" />
         <div className="flex gap-1.5">
@@ -44,7 +44,7 @@ export function ItemsSkeleton() {
 
 export function SpecialDaysSkeleton() {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pb-32 pt-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pt-safe pb-safe-32">
       <header className="mb-6 flex items-center justify-between gap-2">
         <Pulse className="h-7 w-32" />
         <Pulse className="h-7 w-16 rounded-full" />
@@ -64,7 +64,7 @@ export function SpecialDaysSkeleton() {
 
 export function QuestionsSkeleton() {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pb-32 pt-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pt-safe pb-safe-32">
       <header className="mb-6">
         <Pulse className="h-7 w-36" />
       </header>
