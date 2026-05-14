@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 const TABS = [
   { href: '/', label: '메모', emoji: '📋' },
   { href: '/special-days', label: '특별한 날', emoji: '💝' },
-  { href: '/questions', label: '질문', emoji: '🤔' },
+  { href: '/traits', label: '특징', emoji: '🎯' },
 ] as const
 
 function isHidden(pathname: string) {

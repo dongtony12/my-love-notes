@@ -132,36 +132,6 @@ export type Database = {
         }
         Relationships: []
       }
-      questions: {
-        Row: {
-          answer: string | null
-          content: string
-          created_at: string
-          id: string
-          is_answered: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          answer?: string | null
-          content: string
-          created_at?: string
-          id?: string
-          is_answered?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          answer?: string | null
-          content?: string
-          created_at?: string
-          id?: string
-          is_answered?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       special_days: {
         Row: {
           content: string | null
@@ -190,6 +160,39 @@ export type Database = {
           emoji?: string
           id?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      traits: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          label: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          label: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          label?: string
+          position?: number
           updated_at?: string
           user_id?: string
         }

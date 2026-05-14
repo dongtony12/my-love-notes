@@ -62,23 +62,28 @@ export function SpecialDaysSkeleton() {
   )
 }
 
-export function QuestionsSkeleton() {
+export function TraitsSkeleton() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md min-w-0 flex-col overflow-x-hidden px-4 pt-safe pb-safe-32">
-      <header className="mb-6">
-        <Pulse className="h-7 w-36" />
+      <header className="mb-6 flex items-center justify-between gap-2">
+        <Pulse className="h-7 w-24" />
+        <Pulse className="h-7 w-16 rounded-full" />
       </header>
 
       <section className="mb-6">
-        <Pulse className="mb-2 h-3 w-16" />
-        <Pulse className="h-12 rounded-2xl" />
+        <Pulse className="mb-3 h-3 w-16" />
+        <div className="flex flex-col gap-2.5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Pulse key={i} className="h-16 rounded-2xl" />
+          ))}
+        </div>
       </section>
 
       <section>
         <Pulse className="mb-3 h-3 w-12" />
         <div className="flex flex-col gap-2.5">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Pulse key={i} className="h-14 rounded-2xl" />
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Pulse key={i} className="h-20 rounded-2xl" />
           ))}
         </div>
       </section>
