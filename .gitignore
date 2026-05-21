@@ -45,6 +45,12 @@ next-env.d.ts
 supabase/.temp/
 supabase/.branches/
 
+# pg_cron 스크립트는 cron secret 포함 → 커밋 금지
+supabase/cron_cycle_push.sql
+# Firebase 인증 파일들 — 절대 커밋 금지
+android/app/google-services.json
+*firebase-adminsdk*.json
+
 # Capacitor build outputs (네이티브 프로젝트 자체는 커밋. 빌드 산출물만 제외)
 ios/App/Pods/
 ios/App/build/

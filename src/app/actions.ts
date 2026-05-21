@@ -82,6 +82,48 @@ export async function signOut() {
   redirect('/login')
 }
 
+export async function registerPushToken(input: {
+  token: string
+  platform: 'android' | 'ios' | 'web'
+  deviceLabel?: string
+}) {
+  if (!input.token) return
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  // (user_id, token) UNIQUE 이므로 upsert로 last_seen_at만 갱신
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert(
+      {
+        user_id: user.id,
+        token: input.token,
+        platform: input.platform,
+        device_label: input.deviceLabel ?? null,
+        last_seen_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,token' },
+    )
+
+  if (error) throw new Error(error.message)
+}
+
+export async function unregisterPushToken(token: string) {
+  if (!token) return
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('token', token)
+  if (error) throw new Error(error.message)
+}
+
 export async function updateHeader(text: string) {
   const trimmed = text.trim()
   if (!trimmed) return

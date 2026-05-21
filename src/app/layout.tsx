@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { BottomNav } from "@/components/BottomNav";
+import { PushNotificationsRegister } from "@/components/PushNotificationsRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default function RootLayout({
         {children}
         <BottomNav />
         <ServiceWorkerRegister />
+        <PushNotificationsRegister />
       </body>
     </html>
   );
