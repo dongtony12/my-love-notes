@@ -7,6 +7,7 @@ import {
   togglePin,
   updateTrait,
 } from '@/app/traits/actions'
+import { CycleCard } from './CycleCard'
 
 type Trait = {
   id: string
@@ -54,7 +55,17 @@ const DEFAULT_LABELS = new Set(DEFAULT_PROFILE.map((p) => p.label))
 
 type AddingSection = 'profile' | 'trait' | null
 
-export function TraitsApp({ traits }: { traits: Trait[] }) {
+export function TraitsApp({
+  traits,
+  cycleDays,
+  lastPeriodDate,
+  cycleVariance,
+}: {
+  traits: Trait[]
+  cycleDays: number | null
+  lastPeriodDate: string | null
+  cycleVariance: number
+}) {
   const [optimisticTraits, applyOptimistic] = useOptimistic(traits, reducer)
   const [, startTransition] = useTransition()
   const [adding, setAdding] = useState<AddingSection>(null)
@@ -157,6 +168,11 @@ export function TraitsApp({ traits }: { traits: Trait[] }) {
         )}
 
         <ul className="flex flex-col gap-2.5">
+          <CycleCard
+            cycleDays={cycleDays}
+            lastPeriodDate={lastPeriodDate}
+            cycleVariance={cycleVariance}
+          />
           {DEFAULT_PROFILE.map((field) => {
             const existing = profileByLabel.get(field.label)
             if (existing) {

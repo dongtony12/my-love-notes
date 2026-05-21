@@ -98,6 +98,44 @@ export async function updateHeader(text: string) {
   revalidatePath('/')
 }
 
+export async function updateCycle(input: {
+  cycleDays: number | null
+  lastPeriodDate: string | null
+  cycleVariance: number | null
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // cycle_days 범위 검증 (DB에도 CHECK 있지만 미리 차단)
+  let cycleDays: number | null = input.cycleDays
+  if (cycleDays !== null) {
+    cycleDays = Math.round(cycleDays)
+    if (cycleDays < 14 || cycleDays > 60) return
+  }
+
+  let cycleVariance: number | null = input.cycleVariance
+  if (cycleVariance !== null) {
+    cycleVariance = Math.round(cycleVariance)
+    if (cycleVariance < 0 || cycleVariance > 7) return
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        user_id: user.id,
+        cycle_days: cycleDays,
+        last_period_date: input.lastPeriodDate,
+        cycle_variance: cycleVariance,
+      },
+      { onConflict: 'user_id' },
+    )
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/traits')
+}
+
 export async function createCategory(input: {
   name: string
   emoji: string

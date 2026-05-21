@@ -114,19 +114,28 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          cycle_days: number | null
+          cycle_variance: number | null
           header_text: string
+          last_period_date: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          cycle_days?: number | null
+          cycle_variance?: number | null
           header_text?: string
+          last_period_date?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          cycle_days?: number | null
+          cycle_variance?: number | null
           header_text?: string
+          last_period_date?: string | null
           updated_at?: string
           user_id?: string
         }
